@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encuesta sobre Control de Sustancias</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 2cm;
+        }
+        h1 {
+            color: #4a90e2;
+            margin-top: 30px;
+        }
+        p {
+            max-width: 800px;
+            text-align: center;
+            font-size: 1.1em;
+            margin: 20px 20px 40px 20px;
+        }
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        h2 {
+            font-size: 1.2em;
+            color: #4a90e2;
+        }
+        .pregunta {
+            margin-bottom: 20px;
+        }
+        .opciones {
+            display: flex;
+            flex-direction: column;
+            margin-top: 10px;
+        }
+        .opciones input {
+            margin-right: 10px;
+        }
+        button {
+            background-color: #4a90e2;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #357abd;
+        }
+        .resultado {
+            display: none; /* Ocultar inicialmente */
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            border: 1px solid #4a90e2;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 900px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Encuesta sobre Control de Sustancias Psicoactivas</h1>
+    <p>Esta encuesta tiene como objetivo entender tus opiniones y actitudes respecto al consumo de sustancias psicoactivas. Tus respuestas serán utilizadas para analizar las percepciones sobre este tema. Por favor, selecciona la opción que mejor represente tu punto de vista.</p>
+
+    <form id="encuesta"></form>
+
+    <button type="button" onclick="calcularResultado()">Enviar</button>
+    
+    <!-- Contenedor para el mensaje de resultado -->
+    <div class="resultado" id="resultado">
+        <p id="mensaje-resultado"></p>
+        <button onclick="cerrarResultado()">Cerrar</button>
+    </div>
+
+    <script>
+        const preguntas = [
+            { 
+                texto: "¿Cómo piensas que el gobierno debería manejar el tráfico de sustancias psicoactivas en las fronteras?",
+                opciones: ["Implementar estrictos y penas para los traficantes.", 
+                "Legalizar el mercado para reducir el tráfico ilegal.",
+                "Despenalizar la posesión personal y enfocar los recursos en sancionar a los grandes traficantes.", 
+                "No estoy seguro/a."]
+            },
+            { 
+                texto: "Si tu hijo resultara adicto a una sustancia psicoactiva, ¿qué acción tomarías primero?",
+                opciones: ["Buscaría apoyo de las autoridades para obligarlo a dejar de consumir.", 
+                " Intentaría conseguirle acceso a un entorno seguro y controlado donde pueda consumir de manera regulada.",
+                "Debería tener acceso a programas de rehabilitación y apoyo comunitario sin ser penalizado.", 
+                "No estoy seguro/a de cuál sería la mejor opción."]
+            },{ 
+                texto: "¿Cuál crees que es la mejor forma de reducir el consumo de drogas entre los jóvenes?",
+                opciones: ["Endurecer las leyes y aplicar castigos severos para disuadir el uso.", 
+                "Ofrecer educación sobre el consumo responsable, regular y legalizar el acceso.",
+                "Proveer programas educativos y de apoyo sin criminalizar a los jóvenes.", 
+                "No sé, cada joven es diferente."]
+            },
+            { 
+                texto: "En tu opinión, ¿qué papel debería tener el gobierno en la producción de sustancias psicoactivas?",
+                opciones: ["Debería prohibir completamente la producción y penalizar a quienes las produzcan, distribuyan y vendan.", 
+                "Debería regular y controlar la producción para asegurar la calidad,de manera que sea seguro el consumo.",
+                "No debería involucrarse en la producción, pero sí en ofrecer tratamiento a las personas consumidoras.", 
+                "No tengo una opinión clara sobre esto."]
+            },
+            { 
+                texto: "Imagina que eres dueño de un negocio y uno de tus empleados consume drogas recreativas. ¿Cómo manejarías la situación?",
+                opciones: ["Reportaría el comportamiento a las autoridades para que tomen medidas legales, ya que no quiero ser cómplice.", 
+                "Proporcionaría información sobre consumo seguro y apoyaría el acceso a sustancias reguladas en tiempos extralaborales.",
+                "Ofrecería apoyo para el acceso a programas de rehabilitación y apoyo psicológico.", 
+                "No estoy seguro/a de cuál sería la mejor manera de manejarlo."]
+            },
+            { 
+                texto: "¿Qué opinas sobre la publicidad de sustancias psicoactivas?", //pregunta 6
+                opciones: ["Debería estar completamente prohibida en todos los medios de comunicación, más bien deberían existir campañas rechazando la venta y consumo.", 
+                "Debería permitirse con restricciones, similar a la publicidad de alcohol y tabaco.",
+                "Debería haber más educación pública sobre los riesgos a la salud mental y física.", 
+                "No tengo una opinión definida al respecto."]
+            },
+            { 
+                texto: "¿Cómo crees que debería manejarse la posesión de pequeñas cantidades de drogas para uso personal?",
+                opciones: ["Debería ser ilegal y las personas deberían enfrentarse a cargos penales.", 
+                "Debería ser legal, siempre que se compren en lugares regulados.",
+                "Debería ser despenalizada y las personas deberían recibir apoyo en lugar de castigo.", 
+                "No estoy seguro/a de cómo debería manejarse."]
+            },
+            { 
+                texto: "¿Cómo crees que deberían ser tratados los vendedores de drogas por la ley?",
+                opciones: ["Deberían enfrentarse a penas severas, extradición si aplica y largas sentencias de cárcel para disuadir el tráfico.", 
+                "Deberían tener la opción de legalizar su negocio bajo regulaciones estrictas del gobierno.",
+                "Deberían recibir apoyo para cambiar de carrera y programas de reintegración social, evitando la criminalización si no son grandes traficantes.", 
+                "No estoy seguro/a de cuál sería la mejor manera de manejar esta situación."]
+            },
+            { 
+                texto: "¿Qué opinas sobre la penalización de quienes consumen drogas en espacios públicos?",
+                opciones: ["Debería haber penas estrictas para mantener los espacios públicos libres de estas sutancias.", 
+                "Debería permitirse en áreas designadas.",
+                "Debería despenalizarse y enfocarse en educación y tratamiento en lugar de castigo.", 
+                "No estoy seguro/a."]
+            },
+            { 
+                texto: "¿Qué piensas sobre la idea de implementar programas de intervención temprana en escuelas para prevenir el consumo de drogas?",
+                opciones: ["Es esencial y debería incluir medidas estrictas contra los estudiantes que usan drogas.", 
+                "Es útil si se enfoca en el uso seguro y el acceso controlado a sustancias.",
+                "Es necesario pero debería enfocarse en apoyo, no en la criminalización.", 
+                "No estoy seguro/a."]
+            },
+            { 
+                texto: "¿Cómo te sentirías si se vendieran sustancias psicoactivas en establecimientos regulados, como bares y discotecas?",
+                opciones: ["Me opondría completamente, ya que normaliza el uso de drogas.", 
+                "Estaría de acuerdo, ya que permitiría un consumo seguro y controlado.",
+                "Preferiría que se despenalice el consumo personal, pero no que se promueva su venta.", 
+                "No sé"]
+            },
+            { 
+                texto: "¿Qué tipo de enfoque crees que debería tener la publicidad relacionada con las drogas?",
+                opciones: ["Debería enfocarse en disuadir a las personas de consumir drogas con mensajes fuertes y claros.", 
+                "Debería ser similar al del alcohol y el cigarrillo, agregando una parte sobre los riesgos.",
+                "Debería enfocarse en la educación sobre la prevención y el apoyo comunitario.", 
+                "No estoy seguro/a"]
+            },
+            { 
+                texto: "Si estuvieras en una posición de poder, ¿qué harías para reducir la demanda de sustancias psicoactivas?",
+                opciones: ["Prohibición total y aumentaría las penas para los consumidores, distribuidores y vendedores.", 
+                "Legalizaría, para eliminar el mercado negro y cuantificar el consumo.",
+                "Despenalizaría únicamente el consumo y ofrecería apoyo por medio de programas de rehabilitación.", 
+                "No sé"]
+            },
+            { 
+                texto: "¿Qué opinas sobre la cooperación internacional en la lucha contra las drogas?",
+                opciones: ["Es crucial para eliminar completamente la producción y el tráfico de drogas, además estoy a favor de la extradición.", 
+                "Es importante, pero debería centrarse en la regulación del mercado global y no en la penalización de vendedores.",
+                "Debería enfocarse en la reducción de daños.", 
+                "No estoy seguro/a"]
+            },
+            { 
+                texto: "¿Cómo crees que deberían ser tratados los consumidores de drogas dentro del sistema judicial?",
+                opciones: ["Deberían enfrentar cargos penales y recibir sanciones legales.", 
+                "Deberían ser redirigidos a programas de tratamiento y educación dentro de un marco legal.",
+                " Deberían recibir apoyo y acceso a programas de rehabilitación", 
+                "No estoy seguro/a"]
+            },
+        ];
+
+        const formulario = document.getElementById("encuesta");
+
+        preguntas.forEach((pregunta, index) => {
+            let preguntaHTML = `<div class="pregunta"><h2>Pregunta ${index + 1}: ${pregunta.texto}</h2><div class="opciones">`;
+            pregunta.opciones.forEach((opcion, opcionIndex) => {
+                preguntaHTML += `<label><input type="radio" name="pregunta${index}" value="${opcionIndex}"> ${opcion}</label>`;
+            });
+            preguntaHTML += `</div></div>`;
+            formulario.innerHTML += preguntaHTML;
+        });
+
+        function calcularResultado() {
+            const respuestas = [];
+            for (let i = 0; i < preguntas.length; i++) {
+                const opciones = document.getElementsByName(`pregunta${i}`);
+                for (let j = 0; j < opciones.length; j++) {
+                    if (opciones[j].checked) {
+                        respuestas.push(j);
+                        break;
+                    }
+                }
+            }
+
+            const conteoRespuestas = {};
+            respuestas.forEach(respuesta => {
+                conteoRespuestas[respuesta] = (conteoRespuestas[respuesta] || 0) + 1;
+            });
+
+            let respuestaMasComun = 0;
+            let maximoConteo = 0;
+            for (const respuesta in conteoRespuestas) {
+                if (conteoRespuestas[respuesta] > maximoConteo) {
+                    respuestaMasComun = respuesta;
+                    maximoConteo = conteoRespuestas[respuesta];
+                }
+            }
+
+            const resultadoDiv = document.getElementById("resultado");
+            const mensajeResultado = document.getElementById("mensaje-resultado");
+
+            if (maximoConteo > 0) {
+                mensajeResultado.innerHTML = " " + [
+                    "<h2>Enfoque de Prohibición Total de Sustancias Psicoactivas</h2><p><strong>Según tus respuestas, creemos que tu perspectiva tiende más hacia la prohibición total de las sustancias psicoactivas.</strong></p><p><strong>Positivos de la Prohibición Total:</strong> El enfoque de prohibición total busca reducir el acceso y la disponibilidad de sustancias psicoactivas a través de leyes estrictas y penas severas para quienes las trafiquen o consuman. Esta política tiene el potencial de disuadir el uso de drogas y enviar un mensaje claro sobre los peligros asociados con estas sustancias. Al implementar medidas firmes, se pretende proteger a la sociedad de los efectos negativos relacionados con las drogas, como el crimen, la violencia y problemas de salud pública. La idea subyacente es que una postura estricta puede crear un entorno más seguro y saludable.</p><p><strong>Negativos de la Prohibición Total:</strong> Sin embargo, este enfoque también presenta desafíos. La prohibición total puede fomentar el mercado negro, donde las drogas se producen y distribuyen sin control de calidad, lo que las hace más peligrosas. Además, las penas severas pueden llevar a la sobrepoblación en las cárceles y no abordan adecuadamente las causas subyacentes de la adicción, como problemas de salud mental o situaciones socioeconómicas desfavorables. También puede desalentar a los usuarios de drogas de buscar ayuda por miedo a las repercusiones legales.</p><p><strong>¿Por qué podrías considerar otras políticas?</strong></p><ul><li><strong>Legalización y Regulación Controlada:</strong> Este enfoque permite la venta de sustancias en un entorno regulado, lo que podría eliminar el mercado negro y asegurar la calidad de las sustancias, además de generar ingresos para programas de salud y educación.</li><li><strong>Despenalización del Uso Personal:</strong> La despenalización podría ser interesante si crees que es más efectivo abordar la adicción como un problema de salud, permitiendo a las personas buscar ayuda sin temor a ser penalizadas.</li></ul>",
+                    "<h2>Enfoque de Legalización y Regulación Controlada</h2> <p><strong>Según tus respuestas, creemos que tu perspectiva se inclina hacia la legalización y regulación controlada de las sustancias psicoactivas.</strong></p> <p><strong>Positivos de la Legalización y Regulación Controlada:</strong> La política de legalización y regulación propone permitir la venta y el consumo de sustancias psicoactivas bajo estrictas regulaciones gubernamentales. Este enfoque busca eliminar el mercado negro y reducir los crímenes asociados al tráfico de drogas, al tiempo que asegura la calidad y seguridad de las sustancias. La regulación también permite recaudar impuestos que pueden ser invertidos en programas de educación, prevención y tratamiento de adicciones. Este enfoque pretende encontrar un equilibrio entre libertad personal y seguridad pública.</p> <p><strong>Negativos de la Legalización y Regulación Controlada:</strong> No obstante, este enfoque también tiene sus riesgos. Podría normalizar el uso de drogas, lo que podría resultar en un aumento del consumo, especialmente entre los jóvenes. Regular efectivamente la venta y el uso responsable podría ser un desafío, y algunos podrían argumentar que este enfoque podría no ser suficiente para prevenir la adicción y sus consecuencias a largo plazo.</p> <p><strong>¿Por qué podrías considerar otras políticas?</strong></p> <ul> <li><strong>Prohibición Total:</strong> Si valoras un enfoque más estricto para disuadir el uso de drogas y evitar los posibles peligros de la normalización, la prohibición total podría ser una alternativa.</li> <li><strong>Despenalización del Uso Personal:</strong> Si te preocupa que la legalización pueda no enfocarse lo suficiente en el apoyo y tratamiento para los usuarios, la despenalización puede ser atractiva, ya que enfatiza el tratamiento sobre la criminalización.</li> </ul>", 
+                    "<h2>Enfoque de Despenalización del Uso Personal</h2> <p><strong>Según tus respuestas, parece que tu perspectiva se alinea más con la despenalización del uso personal de sustancias psicoactivas.</strong></p> <p><strong>Positivos de la Despenalización del Uso Personal:</strong> La despenalización se centra en tratar la adicción y el uso de sustancias como problemas de salud pública, en lugar de criminales. Este enfoque permite que las personas que consumen drogas busquen ayuda sin miedo a represalias legales. Al despenalizar la posesión de pequeñas cantidades para uso personal, los recursos de la justicia penal pueden redirigirse hacia la prevención, tratamiento y rehabilitación. Esta política también ayuda a reducir el estigma asociado con el uso de drogas, lo que puede facilitar la recuperación y la reintegración social.</p> <p><strong>Negativos de la Despenalización del Uso Personal:</strong> A pesar de sus ventajas, la despenalización también tiene limitaciones. Podría percibirse como una falta de disuasión contra el consumo de drogas, lo que podría llevar a un aumento en el uso. Además, sin un mercado regulado, las drogas seguirían siendo compradas en el mercado negro, donde no hay garantías de calidad o seguridad. La efectividad de la despenalización depende en gran medida de la disponibilidad y calidad de los programas de tratamiento y apoyo.</p> <p><strong>¿Por qué podrías considerar otras políticas?</strong></p> <ul> <li><strong>Prohibición Total:</strong> Podría considerarse si crees que es necesario un enfoque más firme para disuadir el uso de drogas y mantener a las personas a salvo de los efectos negativos de estas sustancias.</li> <li><strong>Legalización y Regulación Controlada:</strong> Si crees que regular el mercado podría eliminar el mercado negro y asegurar la calidad de las sustancias, la legalización podría ser una opción a explorar.</li> </ul>", 
+                    "<h2>No estás seguro de cuál política prefieres</h2> <p><strong>Según tus respuestas, parece que aún no tienes una preferencia clara hacia una política específica para el manejo de sustancias psicoactivas. Aquí te presentamos un enfoque equilibrado que contemple las tres opciones:</strong></p> <p>Es comprensible sentirse indeciso o no completamente identificado con una política específica. A continuación, se presentan algunos aspectos clave de cada enfoque para ayudarte a considerar cuál podría alinearse mejor con tus valores y preocupaciones:</p> <ul> <li><strong>Prohibición Total:</strong> Esta política busca proteger a la sociedad al reducir la disponibilidad de sustancias psicoactivas mediante la implementación de leyes estrictas y penas severas. Puede disuadir el uso de drogas y proteger a la comunidad de los riesgos asociados, pero también podría fomentar el mercado negro y no abordar adecuadamente las causas subyacentes de la adicción.</li> <li><strong>Legalización y Regulación Controlada:</strong> Permitir la venta de sustancias en un entorno regulado puede eliminar el mercado negro, asegurar la calidad de los productos y generar ingresos para programas de educación y tratamiento. Sin embargo, podría normalizar el uso de drogas y plantear desafíos en la regulación efectiva del consumo responsable.</li> <li><strong>Despenalización del Uso Personal:</strong> La despenalización ve la adicción como un problema de salud pública y permite que los usuarios busquen ayuda sin temor a consecuencias legales. Este enfoque puede reducir el estigma y facilitar la rehabilitación, pero podría no disuadir suficientemente el uso y no aborda directamente el mercado negro.</li> </ul>"
+                ][respuestaMasComun];
+            } else {
+                mensajeResultado.innerHTML = "Tus respuestas son variadas.";
+            }
+
+            resultadoDiv.style.display = "block"; // Mostrar el cuadro de resultado
+        }
+
+        function cerrarResultado() {
+            const resultadoDiv = document.getElementById("resultado");
+            resultadoDiv.style.display = "none"; // Ocultar el cuadro de resultado
+        }
+    </script>
+
+</body>
+</html>
